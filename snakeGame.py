@@ -108,7 +108,7 @@ class Game:
         old_cell=self.board[self.x][self.y]
         
         
-        if self.board[self.x][self.y]=='w':
+        if self.board[self.x][self.y] in ['<','>','^','V','-','|', 'w']:
             return False
         # print(f"location at: {self.x}, {self.y}")
         # move the snake
@@ -143,21 +143,31 @@ class Game:
         self.board[x][y]='$'
 
     def print_board(self):
+        WALL = "\033[34m"
+        RESET = "\033[0m"
         if self.border:
             for _ in range(2*self.width+5):
-                print("=", end="")
+                print(f"{WALL}={RESET}", end="")
             print()
         for i in range(self.height):
             if self.border:
-                print("||", end=" ")
+                print(f"{WALL}||{RESET}", end=" ")
             for j in range(self.width):
-                print(self.board[i][j], end=" ")
+                cell = self.board[i][j]
+
+                if cell in ['<','>','^','V','-','|']:   # snake:red
+                    print(f"\033[31m{cell}\033[0m", end=" ")
+                elif cell == '$':                      # food:green
+                    print(f"\033[93m{cell}\033[0m", end=" ")
+                else:
+                    print(cell, end=" ")
+
             if self.border:
-                print("||", end="")
+                print(f"{WALL}||{RESET}", end="")
             print()
         if self.border:
             for _ in range(2*self.width+5):
-                print("=", end="")
+                print(f"{WALL}={RESET}", end="")
             print()
 
 def main():
