@@ -157,8 +157,10 @@ class Game:
 
                 if cell in ['<','>','^','V','-','|']:   # snake:red
                     print(f"\033[31m{cell}\033[0m", end=" ")
-                elif cell == '$':                      # food:green
+                elif cell == '$':                      # food:gold yellow
                     print(f"\033[93m{cell}\033[0m", end=" ")
+                elif cell == 'w':
+                    print(f"\033[94m{cell}\033[0m", end=" ") 
                 else:
                     print(cell, end=" ")
 
@@ -173,9 +175,6 @@ class Game:
 def main():
     print("Please input the mode of the game, enter either 'classic' or 'map'")
     mode=input()
-    print("Please input whether to have the border or not")
-    border_input=input()
-    border=False if border_input[0:1].lower()=='f' or border_input[0:1].lower()=='n' else True
     print("please input the difficulty")
     difficulty=int(input())
     print("please input the init length")
@@ -183,6 +182,9 @@ def main():
     
     game:Game
     if mode=="classic" or mode=="c":
+        print("Please input whether to have the border or not")
+        border_input=input()
+        border=False if border_input[0:1].lower()=='f' or border_input[0:1].lower()=='n' else True
         print("please input the height")
         height=int(input())
         print("please input the width")
@@ -192,7 +194,7 @@ def main():
     else:
         print("please input the game board file")
         board_file=str(input())
-        game=Game(None, None, difficulty, init_length, "./game_boards/"+board_file, border=border)
+        game=Game(None, None, difficulty, init_length, "./game_boards/game"+board_file+".txt", border=None)
     game.play()
 
 if __name__=="__main__":
