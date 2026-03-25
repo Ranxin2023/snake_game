@@ -10,9 +10,13 @@ class Game:
         if level==8:
             self.sleep_time=0.15
         elif level==7:
-            self.sleep_time=0.225
+            self.sleep_time=0.21
+        elif level==1:
+            self.sleep_time=0.68
+        elif level==2:
+            self.sleep_time=0.61
         else:
-            self.sleep_time=(9-level)*0.1
+            self.sleep_time=(9-level)*0.09
         
         self.board=[]
         if board_file is not None:
@@ -50,6 +54,7 @@ class Game:
             for j in range(self.width):
                 if self.board[i][j]=='*':
                     self.empty_cell.append((i, j))
+        self.direction_changed = False
 
     def _capture_arrow_keys(self):
         """
@@ -59,14 +64,20 @@ class Game:
         import keyboard
 
         while True:
-            if keyboard.is_pressed("up") and self.direction != "down":
-                self.direction = "up"
-            elif keyboard.is_pressed("down") and self.direction != "up":
-                self.direction = "down"
-            elif keyboard.is_pressed("left") and self.direction != "right":
-                self.direction = "left"
-            elif keyboard.is_pressed("right") and self.direction != "left":
-                self.direction = "right"
+            if not self.direction_changed:
+                
+                if keyboard.is_pressed("up")  or keyboard.is_pressed('W') and self.direction != "down":
+                    self.direction = "up"
+                    self.direction_changed=True
+                elif keyboard.is_pressed("down")  or keyboard.is_pressed('S') and self.direction != "up":
+                    self.direction = "down"
+                    self.direction_changed=True
+                elif keyboard.is_pressed("left") or keyboard.is_pressed('A') and self.direction != "right":
+                    self.direction = "left"
+                    self.direction_changed=True
+                elif keyboard.is_pressed("right")  or keyboard.is_pressed('D') and self.direction != "left":
+                    self.direction = "right"
+                    self.direction_changed=True
             time.sleep(0.05)  # small delay to reduce CPU usage
 
     def play(self):
@@ -92,6 +103,7 @@ class Game:
                 break
 
     def move(self)->bool:
+        self.direction_changed=False
         time.sleep(self.sleep_time)
         old_x=self.x
         old_y=self.y
@@ -173,28 +185,116 @@ class Game:
             print()
 
 def main():
-    print("Please input the mode of the game, enter either 'classic' or 'map'")
-    mode=input()
-    print("please input the difficulty")
-    difficulty=int(input())
-    print("please input the init length")
-    init_length=int(input())
-    
+    init_length=None
+    difficulty=None
+    mode=None
+    step=0
+    border=None
+    height=None
+    width=None
     game:Game
-    if mode=="classic" or mode=="c":
-        print("Please input whether to have the border or not")
-        border_input=input()
-        border=False if border_input[0:1].lower()=='f' or border_input[0:1].lower()=='n' else True
-        print("please input the height")
-        height=int(input())
-        print("please input the width")
-        width=int(input())
-        game=Game(height=height, width=width, level=difficulty, init_length=init_length, border=border)
-        
-    else:
-        print("please input the game board file")
-        board_file=str(input())
-        game=Game(None, None, difficulty, init_length, "./game_boards/game"+board_file+".txt", border=None)
+    while True:
+        if step==0:
+            print("Please input the mode of the game, enter either 'classic' or 'map'")
+            mode_input=input()
+            if mode_input.lower()=="back":
+                print("already in the first step")
+                continue
+            mode=str(mode_input)
+            step+=1
+        elif step==1:
+
+            back_flag=False
+            while True:
+                print("please input the difficulty from 1 - 8")
+                difficulty_input=input()
+                if difficulty_input.lower()=='back':
+                    step-=1
+                    back_flag=True
+                    break
+                try:
+                    difficulty=int(difficulty_input)
+                    step+=1
+                    break
+                except ValueError:
+                    print("Please input a valid integer")
+            if back_flag:
+                continue
+        elif step==2:
+            back_flag=False
+            while True:
+                print("please input the init length")
+                init_length_input=input()
+                if init_length_input.lower()=='back':
+                    step-=1
+                    back_flag=True
+                    break
+                try:
+                    init_length=int(init_length_input)
+                    step+=1
+                    break
+                except ValueError:
+                    print("Please input a valid integer")
+                            
+            if back_flag:
+                continue
+        if mode=="classic" or mode=="c":
+            
+
+            if step==3:
+                print("Please input whether to have the border or not")
+                border_input=input()
+                if border_input=="back":
+                    step-=1
+                    continue
+                border=False if border_input[0:1].lower()=='f' or border_input[0:1].lower()=='n' else True
+                step+=1
+            elif step==4:
+                back_flag=False
+                while True: 
+                    print("please input the height")
+                    height_input=input()
+                    if height_input=="back":
+                        step-=1
+                        back_flag=True
+                        break
+                    try:
+                        height=int(height_input)
+                        step+=1
+                        break
+                    except ValueError:
+                        print("Please input a valid integer")
+                if back_flag:
+                    continue
+            elif step==5:
+                back_flag=False
+                while True:
+                    print("please input the width")
+                    width_input=input()
+                    if width_input=='back':
+                        back_flag=True
+                        break
+                    try:
+                        width=int(width_input)
+                        print(f"height {height}, width: {width}, difficulty:{difficulty}, init_length:{init_length}")
+                        game=Game(height=height, width=width, level=difficulty, init_length=init_length, border=border)
+                        break
+                    except ValueError:
+                        print("Please input a valid integer")
+                if back_flag:
+                    step-=1
+                    continue
+                break
+            
+        else:
+            if step==3:
+                print("please input the game board file")
+                board_file=str(input())
+                if board_file=="back":
+                    step-=1
+                    continue
+                game=Game(None, None, difficulty, init_length, "./game_boards/game"+board_file+".txt", border=None)
+                break
     game.play()
 
 if __name__=="__main__":
