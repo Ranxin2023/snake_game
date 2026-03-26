@@ -3,7 +3,7 @@ import threading
 import time
 from typing import List, Tuple
 import random
-
+MAX_FILE_NUM=7
 class Game:
     def __init__(self, height:int=None, width:int=None, level:int=None, init_length:int=None, board_file:str=None, border:bool=True) -> None:
         self.border=border
@@ -192,6 +192,7 @@ def main():
     border=None
     height=None
     width=None
+    board_file=None
     game:Game
     while True:
         if step==0:
@@ -209,7 +210,7 @@ def main():
                 print("please input the difficulty from 1 to 8")
                 difficulty_input=input()
                 if difficulty_input.lower()=='back':
-                    step-=1
+                    
                     back_flag=True
                     break
                 try:
@@ -222,6 +223,7 @@ def main():
                 except ValueError:
                     print("Please input a valid integer")
             if back_flag:
+                step-=1
                 continue
         elif step==2:
             back_flag=False
@@ -229,7 +231,6 @@ def main():
                 print("please input the init length from 1 to 5")
                 init_length_input=input()
                 if init_length_input.lower()=='back':
-                    step-=1
                     back_flag=True
                     break
                 try:
@@ -243,6 +244,7 @@ def main():
                     print("Please input a valid integer")
                             
             if back_flag:
+                step-=1
                 continue
         if mode=="classic" or mode=="c":
             
@@ -260,7 +262,6 @@ def main():
                     print("please input the height")
                     height_input=input()
                     if height_input=="back":
-                        step-=1
                         back_flag=True
                         break
                     try:
@@ -300,12 +301,25 @@ def main():
             
         else:
             if step==3:
-                print("please input the game board file")
-                board_file=str(input())
-                if board_file=="back":
+                back_flag=False
+                while True:
+                    print(f"Please input the game board file from 1 to {MAX_FILE_NUM}")
+                    board_file_input=input()
+                    if board_file_input=="back":
+                        back_flag=True
+                        break
+                    try:
+                        board_file=int(board_file_input)
+                        if board_file>MAX_FILE_NUM:
+                            print("No such game")
+                            continue
+                        break
+                    except ValueError:
+                        print("Please input an integer")
+                if back_flag:
                     step-=1
                     continue
-                game=Game(None, None, difficulty, init_length, "./game_boards/game"+board_file+".txt", border=None)
+                game=Game(None, None, difficulty, init_length, "./game_boards/game"+str(board_file)+".txt", border=None)
                 break
     game.play()
 
