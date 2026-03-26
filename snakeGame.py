@@ -206,7 +206,7 @@ def main():
 
             back_flag=False
             while True:
-                print("please input the difficulty from 1 - 8")
+                print("please input the difficulty from 1 to 8")
                 difficulty_input=input()
                 if difficulty_input.lower()=='back':
                     step-=1
@@ -214,6 +214,9 @@ def main():
                     break
                 try:
                     difficulty=int(difficulty_input)
+                    if difficulty>8 or difficulty<1:
+                        print("Invalid difficulty. Please input integer from 1 to 8")
+                        continue
                     step+=1
                     break
                 except ValueError:
@@ -223,7 +226,7 @@ def main():
         elif step==2:
             back_flag=False
             while True:
-                print("please input the init length")
+                print("please input the init length from 1 to 5")
                 init_length_input=input()
                 if init_length_input.lower()=='back':
                     step-=1
@@ -231,6 +234,9 @@ def main():
                     break
                 try:
                     init_length=int(init_length_input)
+                    if init_length>5:
+                        print("Too much init length. Please input from 1 to 5")
+                        continue
                     step+=1
                     break
                 except ValueError:
@@ -240,7 +246,6 @@ def main():
                 continue
         if mode=="classic" or mode=="c":
             
-
             if step==3:
                 print("Please input whether to have the border or not")
                 border_input=input()
@@ -260,11 +265,15 @@ def main():
                         break
                     try:
                         height=int(height_input)
+                        if height>50:
+                            print("Too much for height")
+                            continue
                         step+=1
                         break
                     except ValueError:
                         print("Please input a valid integer")
                 if back_flag:
+                    step-=1
                     continue
             elif step==5:
                 back_flag=False
@@ -276,6 +285,9 @@ def main():
                         break
                     try:
                         width=int(width_input)
+                        if width>50:
+                            print("Too much for width")
+                            continue
                         print(f"height {height}, width: {width}, difficulty:{difficulty}, init_length:{init_length}")
                         game=Game(height=height, width=width, level=difficulty, init_length=init_length, border=border)
                         break
