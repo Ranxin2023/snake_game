@@ -3,7 +3,45 @@ import threading
 import time
 from typing import List, Tuple
 import random
+import questionary
+from questionary import Style
+
 MAX_FILE_NUM=7
+
+THEMES = {
+    "Red": "#FF5555",
+    "Green": "#50FA7B",
+    "Blue": "#61AFEF",
+    "Yellow": "#F1FA8C",
+    "Purple": "#BD93F9",
+}
+
+def choose_theme():
+    theme = questionary.select(
+        "Choose your theme color:",
+        choices=[
+            "Red",
+            "Green",
+            "Blue",
+            "Yellow",
+            "Purple"
+        ],
+        default="Blue"
+    ).ask()
+
+    return theme
+
+def create_style(theme):
+    color = THEMES[theme]
+
+    return Style([
+        ("qmark", f"fg:{color} bold"),
+        ("question", f"fg:{color} bold"),
+        ("pointer", f"fg:{color} bold"),
+        ("highlighted", f"fg:{color} bold"),
+        ("selected", f"fg:{color}"),
+        ("answer", f"fg:{color} bold"),
+    ])
 class Game:
     def __init__(self, height:int=None, width:int=None, level:int=None, init_length:int=None, board_file:str=None, border:bool=True) -> None:
         self.border=border
@@ -185,143 +223,94 @@ class Game:
             print()
 
 def main():
-    init_length=None
-    difficulty=None
-    mode=None
-    step=0
-    border=None
-    height=None
-    width=None
-    board_file=None
-    game:Game
-    while True:
-        if step==0:
-            print("Please input the mode of the game, enter either 'classic' or 'map'")
-            mode_input=input()
-            if mode_input.lower()=="back":
-                print("already in the first step")
-                continue
-            mode=str(mode_input)
-            step+=1
-        elif step==1:
+    questions = [
+        ("theme", "Choose your theme color:", list(THEMES.keys())),
+        ("mode", "Choose game mode:", ["Classic", "Map"]),
+        ("difficulty", "Choose difficulty:", list(range(1, 9))),
+        ("init_length", "Choose initial snake length:", list(range(1, 6))),
+    ]
 
-            back_flag=False
-            while True:
-                print("please input the difficulty from 1 to 8")
-                difficulty_input=input()
-                if difficulty_input.lower()=='back':
-                    
-                    back_flag=True
-                    break
-                try:
-                    difficulty=int(difficulty_input)
-                    if difficulty>8 or difficulty<1:
-                        print("Invalid difficulty. Please input integer from 1 to 8")
-                        continue
-                    step+=1
-                    break
-                except ValueError:
-                    print("Please input a valid integer")
-            if back_flag:
-                step-=1
-                continue
-        elif step==2:
-            back_flag=False
-            while True:
-                print("please input the init length from 1 to 5")
-                init_length_input=input()
-                if init_length_input.lower()=='back':
-                    back_flag=True
-                    break
-                try:
-                    init_length=int(init_length_input)
-                    if init_length>5:
-                        print("Too much init length. Please input from 1 to 5")
-                        continue
-                    step+=1
-                    break
-                except ValueError:
-                    print("Please input a valid integer")
-                            
-            if back_flag:
-                step-=1
-                continue
-        if mode=="classic" or mode=="c":
-            
-            if step==3:
-                print("Please input whether to have the border or not")
-                border_input=input()
-                if border_input=="back":
-                    step-=1
-                    continue
-                border=False if border_input[0:1].lower()=='f' or border_input[0:1].lower()=='n' else True
-                step+=1
-            elif step==4:
-                back_flag=False
-                while True: 
-                    print("please input the height")
-                    height_input=input()
-                    if height_input=="back":
-                        back_flag=True
-                        break
-                    try:
-                        height=int(height_input)
-                        if height>50:
-                            print("Too much for height")
-                            continue
-                        step+=1
-                        break
-                    except ValueError:
-                        print("Please input a valid integer")
-                if back_flag:
-                    step-=1
-                    continue
-            elif step==5:
-                back_flag=False
-                while True:
-                    print("please input the width")
-                    width_input=input()
-                    if width_input=='back':
-                        back_flag=True
-                        break
-                    try:
-                        width=int(width_input)
-                        if width>50:
-                            print("Too much for width")
-                            continue
-                        print(f"height {height}, width: {width}, difficulty:{difficulty}, init_length:{init_length}")
-                        game=Game(height=height, width=width, level=difficulty, init_length=init_length, border=border)
-                        break
-                    except ValueError:
-                        print("Please input a valid integer")
-                if back_flag:
-                    step-=1
-                    continue
-                break
-            
-        else:
-            if step==3:
-                back_flag=False
-                while True:
-                    print(f"Please input the game board file from 1 to {MAX_FILE_NUM}")
-                    board_file_input=input()
-                    if board_file_input=="back":
-                        back_flag=True
-                        break
-                    try:
-                        board_file=int(board_file_input)
-                        if board_file>MAX_FILE_NUM:
-                            print("No such game")
-                            continue
-                        break
-                    except ValueError:
-                        print("Please input an integer")
-                if back_flag:
-                    step-=1
-                    continue
-                game=Game(None, None, difficulty, init_length, "./game_boards/game"+str(board_file)+".txt", border=None)
-                break
+    answers = {}
+    step = 0
+    style = None
+
+    while True:
+        # Add questions based on game mode
+        current_questions = questions.copy()
+
+        if answers.get("mode") == "Classic":
+            current_questions += [
+                ("border", "Enable border?", ["Yes", "No"]),
+                ("height", "Choose board height:", list(range(1, 51))),
+                ("width", "Choose board width:", list(range(1, 51))),
+            ]
+
+        elif answers.get("mode") == "Map":
+            current_questions += [
+                ("board_file", "Choose game map:", list(range(1, MAX_FILE_NUM + 1))),
+            ]
+
+        # All questions answered
+        if step >= len(current_questions):
+            break
+
+        key, question, choices = current_questions[step]
+
+        # Add Back option except for the first question
+        if step > 0:
+            choices = list(choices) + ["← Back"]
+
+        answer = questionary.select(
+            question,
+            choices=[questionary.Choice(str(c), value=c) for c in choices],
+            style=style,
+        ).ask()
+
+        # Ctrl+C / Ctrl+D
+        if answer is None:
+            print("Game setup cancelled.")
+            return
+
+        # Go back
+        if answer == "← Back":
+            step -= 1
+            continue
+
+        # Save answer
+        answers[key] = answer
+
+        # Apply theme
+        if key == "theme":
+            style = create_style(answer)
+
+        # Clear later answers when changing earlier selections
+        for later_key, _, _ in current_questions[step + 1:]:
+            answers.pop(later_key, None)
+
+        step += 1
+
+    # Create game
+    if answers["mode"] == "Classic":
+        game = Game(
+            height=answers["height"],
+            width=answers["width"],
+            level=answers["difficulty"],
+            init_length=answers["init_length"],
+            border=answers["border"] == "Yes",
+        )
+
+    else:
+        game = Game(
+            height=None,
+            width=None,
+            level=answers["difficulty"],
+            init_length=answers["init_length"],
+            board_file=f"./game_boards/game{answers['board_file']}.txt",
+            border=None,
+        )
+
     game.play()
+
 
 if __name__=="__main__":
     main()
