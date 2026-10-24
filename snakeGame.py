@@ -1,49 +1,17 @@
 import collections
+import random
 import threading
 import time
-from typing import List, Tuple
-import random
+
 import questionary
-from questionary import Style
+
+from theme import THEMES, create_style
 
 MAX_FILE_NUM=7
 
-THEMES = {
-    "Red": "#FF5555",
-    "Green": "#50FA7B",
-    "Blue": "#61AFEF",
-    "Yellow": "#F1FA8C",
-    "Purple": "#BD93F9",
-}
-
-def choose_theme():
-    theme = questionary.select(
-        "Choose your theme color:",
-        choices=[
-            "Red",
-            "Green",
-            "Blue",
-            "Yellow",
-            "Purple"
-        ],
-        default="Blue"
-    ).ask()
-
-    return theme
-
-def create_style(theme):
-    color = THEMES[theme]
-
-    return Style([
-        ("qmark", f"fg:{color} bold"),
-        ("question", f"fg:{color} bold"),
-        ("pointer", f"fg:{color} bold"),
-        ("highlighted", f"fg:{color} bold"),
-        ("selected", f"fg:{color}"),
-        ("answer", f"fg:{color} bold"),
-    ])
 class Game:
-    def __init__(self, height:int=None, width:int=None, level:int=None, init_length:int=None, board_file:str=None, border:bool=True) -> None:
+    def __init__(self, height:int | None=None, width:int | None = None, level:int | None=None, 
+                 init_length:int | None=None, board_file:str | None=None, border:bool=True) -> None:
         self.border=border
         if level==8:
             self.sleep_time=0.15
@@ -86,7 +54,7 @@ class Game:
         self.y=-1
         self.snake_head_shape={"left":'<', "right":'>', "up":'^', "down":'V'}
         self.snake_body_shape={"left":'-', "right":'-', "up":'|', "down":'|'}
-        self.empty_cell:List[Tuple[int]]=[]
+        self.empty_cell:list[tuple[int]]=[]
         self.score=0
         for i in range(self.height):
             for j in range(self.width):
