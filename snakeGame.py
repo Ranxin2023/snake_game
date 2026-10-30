@@ -13,6 +13,7 @@ class Game:
     def __init__(self, height:int | None=None, width:int | None = None, level:int | None=None, 
                  init_length:int | None=None, board_file:str | None=None, border:bool=True) -> None:
         self.border=border
+        self.difficulty=level
         if level==8:
             self.sleep_time=0.15
         elif level==7:
@@ -70,21 +71,24 @@ class Game:
         import keyboard
 
         while True:
-            if not self.direction_changed:
+            if self.direction_changed:
+                time.sleep(0.02)
+                continue
+            
                 
-                if keyboard.is_pressed("up")  or keyboard.is_pressed('W') and self.direction != "down":
+            if (keyboard.is_pressed("up"))  or keyboard.is_pressed('W') and self.direction != "down":
                     self.direction = "up"
                     self.direction_changed=True
-                elif keyboard.is_pressed("down")  or keyboard.is_pressed('S') and self.direction != "up":
+            elif (keyboard.is_pressed("down"))  or keyboard.is_pressed('S') and self.direction != "up":
                     self.direction = "down"
                     self.direction_changed=True
-                elif keyboard.is_pressed("left") or keyboard.is_pressed('A') and self.direction != "right":
+            elif (keyboard.is_pressed("left")) or keyboard.is_pressed('A') and self.direction != "right":
                     self.direction = "left"
                     self.direction_changed=True
-                elif keyboard.is_pressed("right")  or keyboard.is_pressed('D') and self.direction != "left":
+            elif (keyboard.is_pressed("right"))  or keyboard.is_pressed('D') and self.direction != "left":
                     self.direction = "right"
                     self.direction_changed=True
-            time.sleep(0.05)  # small delay to reduce CPU usage
+            time.sleep(0.02) # small delay to reduce CPU usage
 
     def play(self):
         input_thread = threading.Thread(target=self._capture_arrow_keys, daemon=True)
@@ -148,9 +152,9 @@ class Game:
         if old_cell=='$':
             self.init_snake_length+=1
             if len(self.empty_cell)==0:
-                self.score+=1
+                self.score+=self.difficulty
                 return False
-            self.score+=1
+            self.score+=self.difficulty
             self.generate_money()
         return True
     
@@ -209,8 +213,8 @@ def main():
         if answers.get("mode") == "Classic":
             current_questions += [
                 ("border", "Enable border?", ["Yes", "No"]),
-                ("height", "Choose board height:", list(range(1, 51))),
-                ("width", "Choose board width:", list(range(1, 51))),
+                ("height", "Choose board height:", None),
+                ("width", "Choose board width:", None),
             ]
 
         elif answers.get("mode") == "Map":
@@ -225,15 +229,35 @@ def main():
         key, question, choices = current_questions[step]
 
         # Add Back option except for the first question
-        if step > 0:
-            choices = list(choices) + ["← Back"]
+        if key in ("height", "width"):
+            answer = questionary.text(
+                question,
+                default="10",
+                style=style,
+                validate=lambda x: (
+                    x.lower() == "back"
+                    or (x.isdigit() and 1 <= int(x) <= 50)
+                )
+            ).ask()
 
-        answer = questionary.select(
-            question,
-            choices=[questionary.Choice(str(c), value=c) for c in choices],
-            style=style,
-        ).ask()
+            if answer is not None:
+                if answer.lower() == "back":
+                    answer = "← Back"
+                else:
+                    answer = int(answer)
 
+        else:
+            if step > 0:
+                choices = list(choices) + ["← Back"]
+
+            answer = questionary.select(
+                question,
+                choices=[
+                    questionary.Choice(str(c), value=c)
+                    for c in choices
+                ],
+                style=style,
+            ).ask()
         # Ctrl+C / Ctrl+D
         if answer is None:
             print("Game setup cancelled.")
